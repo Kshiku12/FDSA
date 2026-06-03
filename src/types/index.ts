@@ -128,6 +128,7 @@ export interface UserProgress {
     templateId: string;
     publicKey: string;
   };
+  lastEmailedSkippedDate?: string | null;
 }
 
 export interface UserProfile {

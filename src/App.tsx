@@ -71,7 +71,8 @@ function App() {
     importProblem,
     saveNote,
     clearProgress,
-    updateEmailSettings
+    updateEmailSettings,
+    updateLastEmailedSkippedDate
   } = useProgress(currentUser);
 
   const handleSelectProblem = (problem: Problem | null) => {
@@ -147,6 +148,7 @@ function App() {
                 setActiveTab={setActiveTab}
                 setSelectedProblem={handleSelectProblem}
                 updateEmailSettings={updateEmailSettings}
+                updateLastEmailedSkippedDate={updateLastEmailedSkippedDate}
                 currentUser={currentUser}
               />
             )}

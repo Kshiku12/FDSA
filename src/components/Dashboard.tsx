@@ -10,14 +10,20 @@ interface DashboardProps {
   setActiveTab: (tab: string) => void;
   setSelectedProblem: (problem: Problem | null) => void;
   updateEmailSettings: (settings: NonNullable<UserProgress['emailSettings']>) => void;
+  updateLastEmailedSkippedDate: (dateStr: string) => void;
   currentUser: UserProfile | null;
 }
+
+const DEFAULT_SERVICE_ID = 'service_c66uzia';
+const DEFAULT_TEMPLATE_ID = 'template_to23anh';
+const DEFAULT_PUBLIC_KEY = '30vYActHFxXnS16ot';
 
 export const Dashboard: React.FC<DashboardProps> = ({
   progress,
   setActiveTab,
   setSelectedProblem,
   updateEmailSettings,
+  updateLastEmailedSkippedDate,
   currentUser
 }) => {
   const completedIds = progress.completedProblemIds;
@@ -85,19 +91,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
 
-  // Daily Streak Alert Checker
-  useEffect(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const lastActive = progress.streaks?.lastActiveDate;
-    
-    // Warn if they have a streak and haven't coded today yet
-    if (lastActive && lastActive !== todayStr && currentStreak > 0) {
-      setShowStreakWarning(true);
-    } else {
-      setShowStreakWarning(false);
-    }
-  }, [progress, currentStreak]);
-
   // Handle saving configurations
   const handleSaveEmailSettings = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +113,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Send Email Alert logic
   const sendEmailAlert = async (isTest = false) => {
+    const sId = serviceId || DEFAULT_SERVICE_ID;
+    const tId = templateId || DEFAULT_TEMPLATE_ID;
+    const pKey = publicKey || DEFAULT_PUBLIC_KEY;
+
     const targetEmail = emailAddress || currentUser?.email || 'candidate@example.com';
     const emailName = currentUser?.name || 'Developer';
     const currentDay = new Date().toLocaleDateString('en-US', {
@@ -134,8 +131,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       ? `${window.location.origin}/?problem=${recProb.slug}`
       : window.location.origin;
 
-    if (!serviceId || !templateId || !publicKey) {
-      // If not configured, pop up the simulation sandbox preview so they see the template immediately
+    if (!sId || !tId || !pKey) {
       setShowEmailPreview(true);
       return;
     }
@@ -148,9 +144,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          service_id: serviceId,
-          template_id: templateId,
-          user_id: publicKey,
+          service_id: sId,
+          template_id: tId,
+          user_id: pKey,
           template_params: {
             name: emailName,
             user_name: emailName,
@@ -165,6 +161,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       if (response.ok) {
         setEmailAlertStatus('success');
+        if (!isTest) {
+          const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+          updateLastEmailedSkippedDate(yesterdayStr);
+        }
         alert(isTest ? `Test email successfully dispatched to ${targetEmail}!` : 'Streak warning email successfully dispatched!');
       } else {
         const text = await response.text();
@@ -179,6 +179,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setTimeout(() => setEmailAlertStatus('idle'), 3000);
     }
   };
+
+  // Daily Streak Alert Checker & Auto-Email dispatch
+  useEffect(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const lastActive = progress.streaks?.lastActiveDate;
+    
+    // Warn if they have a streak and haven't coded today yet
+    if (lastActive && lastActive !== todayStr && currentStreak > 0) {
+      setShowStreakWarning(true);
+      
+      // AUTO-TRIGGER EMAIL ALERT:
+      // If email alert is toggled on, and we haven't already successfully sent a warning email for yesterday's skip
+      if (emailEnabled && progress.lastEmailedSkippedDate !== yesterdayStr) {
+        sendEmailAlert(false);
+      }
+    } else {
+      setShowStreakWarning(false);
+    }
+  }, [progress, currentStreak, emailEnabled]);
 
   // Compute 10 DSA topics completion stats
   const topicStats = dsaTopics.map(topic => {

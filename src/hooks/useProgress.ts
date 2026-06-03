@@ -22,7 +22,8 @@ const defaultProgress: UserProgress = {
     serviceId: '',
     templateId: '',
     publicKey: ''
-  }
+  },
+  lastEmailedSkippedDate: null
 };
 
 export const useProgress = (currentUser: UserProfile | null) => {
@@ -53,6 +54,7 @@ export const useProgress = (currentUser: UserProfile | null) => {
           mockTestAttempts: parsed.mockTestAttempts || [],
           importedProblems: parsed.importedProblems || [],
           emailSettings: parsed.emailSettings || defaultProgress.emailSettings,
+          lastEmailedSkippedDate: parsed.lastEmailedSkippedDate || null,
         });
       } catch (e) {
         console.error('Failed to parse progress data:', e);
@@ -226,6 +228,13 @@ export const useProgress = (currentUser: UserProfile | null) => {
     });
   };
 
+  const updateLastEmailedSkippedDate = (dateStr: string) => {
+    saveProgress({
+      ...progress,
+      lastEmailedSkippedDate: dateStr
+    });
+  };
+
   return {
     progress,
     toggleProblemComplete,
@@ -238,5 +247,6 @@ export const useProgress = (currentUser: UserProfile | null) => {
     recordActivity,
     clearProgress,
     updateEmailSettings,
+    updateLastEmailedSkippedDate,
   };
 };
