@@ -122,3 +122,12 @@ export interface UserProgress {
     history: string[];
   };
 }
+
+export interface UserProfile {
+  uid: string;
+  name: string;
+  email: string;
+  photoURL?: string;
+  provider: 'local' | 'google';
+}
+

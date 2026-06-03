@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import type { UserProgress, MockTestAttempt, Problem } from '../types';
+import type { UserProgress, MockTestAttempt, Problem, UserProfile } from '../types';
 
-const STORAGE_KEY = 'fdsa_user_progress_v2';
+const BASE_STORAGE_KEY = 'fdsa_user_progress_v2';
 
 const defaultProgress: UserProgress = {
   completedProblemIds: [],
@@ -18,12 +18,20 @@ const defaultProgress: UserProgress = {
   },
 };
 
-export const useProgress = () => {
+export const useProgress = (currentUser: UserProfile | null) => {
+  const getStorageKey = () => {
+    if (currentUser) {
+      return `${BASE_STORAGE_KEY}_${currentUser.email}`;
+    }
+    return `${BASE_STORAGE_KEY}_guest`;
+  };
+
   const [progress, setProgress] = useState<UserProgress>(defaultProgress);
 
-  // Load from localStorage on mount
+  // Load from localStorage when active user changes
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const key = getStorageKey();
+    const stored = localStorage.getItem(key);
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as UserProgress;
@@ -40,13 +48,16 @@ export const useProgress = () => {
         });
       } catch (e) {
         console.error('Failed to parse progress data:', e);
+        setProgress(defaultProgress);
       }
+    } else {
+      setProgress(defaultProgress);
     }
-  }, []);
+  }, [currentUser]);
 
   const saveProgress = (newProgress: UserProgress) => {
     setProgress(newProgress);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newProgress));
+    localStorage.setItem(getStorageKey(), JSON.stringify(newProgress));
   };
 
   const toggleProblemComplete = (problemId: string) => {

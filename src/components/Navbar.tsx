@@ -1,15 +1,24 @@
 import React from 'react';
-import { LayoutDashboard, BookOpen, GraduationCap, Building2, Flame, RotateCcw, ShieldCheck, Timer, Database } from 'lucide-react';
-import type { UserProgress } from '../types';
+import { LayoutDashboard, BookOpen, GraduationCap, Building2, Flame, RotateCcw, ShieldCheck, Timer, Database, LogOut } from 'lucide-react';
+import type { UserProgress, UserProfile } from '../types';
 
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   progress: UserProgress;
   clearProgress: () => void;
+  currentUser: UserProfile | null;
+  onLogout: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, progress, clearProgress }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  activeTab,
+  setActiveTab,
+  progress,
+  clearProgress,
+  currentUser,
+  onLogout
+}) => {
   const totalSolved = progress.completedProblemIds.length;
   const currentStreak = progress.streaks?.current || 0;
 
@@ -58,6 +67,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, progres
           fontSize: '1.5rem',
           fontWeight: 800,
           letterSpacing: '-0.03em',
+          userSelect: 'none'
         }}>
           FDSA
         </span>
@@ -110,7 +120,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, progres
       </div>
 
       {/* Stats Widgets */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {/* Streak Flame */}
         <div style={{
           display: 'flex',
@@ -179,7 +189,121 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, progres
         >
           <RotateCcw size={16} />
         </button>
+
+        {/* User profile / Log out */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          borderLeft: '1px solid var(--border-light)',
+          paddingLeft: 16,
+          marginLeft: 4
+        }}>
+          {currentUser ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {currentUser.photoURL ? (
+                <img
+                  src={currentUser.photoURL}
+                  alt={currentUser.name}
+                  referrerPolicy="no-referrer"
+                  style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid var(--accent-purple)' }}
+                />
+              ) : (
+                <div style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  background: 'var(--accent-purple)',
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  fontSize: '0.8rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'var(--font-display)'
+                }}>
+                  {currentUser.name[0].toUpperCase()}
+                </div>
+              )}
+              
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: '#fff',
+                  maxWidth: '75px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {currentUser.name}
+                </span>
+                <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', lineHeight: 1 }}>
+                  {currentUser.provider === 'google' ? 'Google' : 'Local'}
+                </span>
+              </div>
+
+              <button
+                onClick={onLogout}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-dim)',
+                  cursor: 'pointer',
+                  padding: 4,
+                  borderRadius: 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'color var(--transition-fast), background var(--transition-fast)'
+                }}
+                title="Logout"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--accent-rose)';
+                  e.currentTarget.style.background = 'rgba(244, 63, 94, 0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--text-dim)';
+                  e.currentTarget.style.background = 'none';
+                }}
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                fontSize: '0.65rem',
+                background: 'rgba(255,255,255,0.02)',
+                color: 'var(--text-dim)',
+                padding: '3px 8px',
+                borderRadius: 6,
+                border: '1px solid var(--border-light)',
+                fontWeight: 600,
+                letterSpacing: '0.02em'
+              }}>
+                GUEST
+              </div>
+              <button
+                onClick={onLogout} // Logout for guest triggers transition back to authentication screen
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--accent-cyan)',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  textDecoration: 'underline',
+                  padding: '2px 4px'
+                }}
+              >
+                Sign In
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );
 };
+export default Navbar;
