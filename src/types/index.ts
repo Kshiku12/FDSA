@@ -121,6 +121,13 @@ export interface UserProgress {
     lastActiveDate: string | null;
     history: string[];
   };
+  emailSettings?: {
+    enabled: boolean;
+    emailAddress: string;
+    serviceId: string;
+    templateId: string;
+    publicKey: string;
+  };
 }
 
 export interface UserProfile {

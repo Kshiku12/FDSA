@@ -70,7 +70,8 @@ function App() {
     saveMockTestAttempt,
     importProblem,
     saveNote,
-    clearProgress
+    clearProgress,
+    updateEmailSettings
   } = useProgress(currentUser);
 
   const handleSelectProblem = (problem: Problem | null) => {
@@ -145,6 +146,8 @@ function App() {
                 progress={progress}
                 setActiveTab={setActiveTab}
                 setSelectedProblem={handleSelectProblem}
+                updateEmailSettings={updateEmailSettings}
+                currentUser={currentUser}
               />
             )}
             

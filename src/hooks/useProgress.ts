@@ -16,6 +16,13 @@ const defaultProgress: UserProgress = {
     lastActiveDate: null,
     history: [],
   },
+  emailSettings: {
+    enabled: false,
+    emailAddress: '',
+    serviceId: '',
+    templateId: '',
+    publicKey: ''
+  }
 };
 
 export const useProgress = (currentUser: UserProfile | null) => {
@@ -45,6 +52,7 @@ export const useProgress = (currentUser: UserProfile | null) => {
           completedSqlQuestionIds: parsed.completedSqlQuestionIds || [],
           mockTestAttempts: parsed.mockTestAttempts || [],
           importedProblems: parsed.importedProblems || [],
+          emailSettings: parsed.emailSettings || defaultProgress.emailSettings,
         });
       } catch (e) {
         console.error('Failed to parse progress data:', e);
@@ -211,6 +219,13 @@ export const useProgress = (currentUser: UserProfile | null) => {
     }
   };
 
+  const updateEmailSettings = (settings: NonNullable<UserProgress['emailSettings']>) => {
+    saveProgress({
+      ...progress,
+      emailSettings: settings
+    });
+  };
+
   return {
     progress,
     toggleProblemComplete,
@@ -222,5 +237,6 @@ export const useProgress = (currentUser: UserProfile | null) => {
     saveNote,
     recordActivity,
     clearProgress,
+    updateEmailSettings,
   };
 };
